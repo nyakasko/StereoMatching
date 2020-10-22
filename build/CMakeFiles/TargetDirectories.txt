@@ -1,0 +1,3 @@
+D:/source/repos/OpenCV_naive_stereo/build/CMakeFiles/OpenCV_naive_stereo.dir
+D:/source/repos/OpenCV_naive_stereo/build/CMakeFiles/ALL_BUILD.dir
+D:/source/repos/OpenCV_naive_stereo/build/CMakeFiles/ZERO_CHECK.dir

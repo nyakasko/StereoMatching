@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
     ////////////////////
 
     // Naive disparity image
-    cv::Mat naive_disparities = cv::Mat::zeros(height - window_size, width - window_size, CV_8UC1);
-    // cv::Mat naive_disparities = cv::Mat::zeros(height, width, CV_8UC1);
+    // cv::Mat naive_disparities = cv::Mat::zeros(height - window_size, width - window_size, CV_8UC1);
+    cv::Mat naive_disparities = cv::Mat::zeros(height, width, CV_8UC1);
     // DP disparity image
     cv::Mat dp_disparities = cv::Mat::zeros(height, width, CV_8UC1);
     int lambda = 10;
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
         dp_disparities, scale);
     // save / display images
     std::stringstream out2;
-    out2 << output_file << "_dp.png";
+    out2 << output_file << ".png";
     cv::imwrite(out2.str(), dp_disparities);
 
     cv::namedWindow("DP", cv::WINDOW_AUTOSIZE);
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 
     // save / display images
     std::stringstream out1;
-    // out1 << output_file << "_naive.png";
+    out1 << output_file << "_naive.png";
     cv::imwrite(out1.str(), naive_disparities);
 
     cv::namedWindow("Naive", cv::WINDOW_AUTOSIZE);

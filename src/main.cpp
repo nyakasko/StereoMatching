@@ -164,8 +164,8 @@ void StereoEstimation_DP(
                 index_j--;
             }
             if (M.at<uchar>(index_i, index_j) == 2) {
-                index_i--;  // left occlusion
                 dp_disparities.at<uchar>(sor, index_j) = 0;
+                index_i--;  // left occlusion
             }
             if (M.at<uchar>(index_i, index_j) == 3) {
                 dp_disparities.at<uchar>(sor, index_j) = 0;

@@ -60,7 +60,6 @@ int main(int argc, char** argv) {
 
     int height = image1.size().height;
     int width = image1.size().width;
-
     ////////////////////
     // Reconstruction //
     ////////////////////
@@ -71,12 +70,14 @@ int main(int argc, char** argv) {
     // DP disparity image
     cv::Mat dp_disparities = cv::Mat::zeros(height, width, CV_8UC1);
     int lambda = 10;
+
     StereoEstimation_DP(
         height,
         width,
         lambda,
         image1, image2,
         dp_disparities, scale);
+
     // save / display images
     std::stringstream out2;
     out2 << output_file << ".png";
@@ -91,9 +92,9 @@ int main(int argc, char** argv) {
         image1, image2,
         naive_disparities, scale);
 
-    //////////
-    //Output//
-    //////////
+    ////////////
+    // Output //
+    ////////////
 
     // reconstruction
     Disparity2PointCloud(
@@ -101,7 +102,7 @@ int main(int argc, char** argv) {
         height, width, naive_disparities,
         window_size, dmin, baseline, focal_length);
 
-    // save / display images
+    // save and display images
     std::stringstream out1;
     out1 << output_file << "_naive.png";
     cv::imwrite(out1.str(), naive_disparities);
@@ -127,11 +128,14 @@ void StereoEstimation_DP(
             << "Calculating disparities for the DP approach... "
             << std::ceil((sor / static_cast<double> (height)) * 100) << "%\r"
             << std::flush;
+
         for (int i = 1; i < width; ++i) {
-            C.at<uchar>(i, 1) = C.at<uchar>(i - 1, 1) + lambda;
+            C.at<uchar>(i, 1) = C.at<uchar>(i - 1, 1) + lambda; // maybe i*occlusion?
+            M.at<uchar>(i, 1) = 3; // right occlusion
         }
         for (int j = 1; j < width; ++j) {
             C.at<uchar>(1, j) += lambda;
+            M.at<uchar>(1, j) = 2; // left occlusion
         }
 
         for (int i = 1; i < width; ++i) {
@@ -139,13 +143,15 @@ void StereoEstimation_DP(
                 int val = image1.at<uchar>(sor, i) - image2.at<uchar>(sor, j);
                 int dissim = val * val;
                 int min1 = C.at<uchar>(i - 1, j - 1) + dissim;
-                int min2 = C.at<uchar>(i - 1, j) + lambda;
-                int min3 = C.at<uchar>(i, j - 1) + lambda;
+                int min2 = C.at<uchar>(i - 1, j) + lambda; // left occlusion
+                int min3 = C.at<uchar>(i, j - 1) + lambda; // right occlusion
                 int min = std::min({ min1, min2, min3 });
+                C.at<uchar>(i, j) = min; // Update the cost matrix
 
                 if (min == min1) M.at<uchar>(i, j) = 1;
-                else if (min == min2) M.at<uchar>(i, j) = 2;
-                else if (min == min3) M.at<uchar>(i, j) = 3;
+                else if (min == min2) M.at<uchar>(i, j) = 2;  // left occlusion
+                else if (min == min3) M.at<uchar>(i, j) = 3;  // right occlusion
+
             }
         }
 
@@ -153,17 +159,17 @@ void StereoEstimation_DP(
         int index_j = width - 1;
         while (index_i > 0 && index_j > 0) {
             if (M.at<uchar>(index_i, index_j) == 1) {
-                dp_disparities.at<uchar>(sor, index_j) = std::abs(index_i - index_j) * scale;
+                dp_disparities.at<uchar>(sor, index_j) = std::abs(index_j - index_i) * scale;
                 index_i--;
                 index_j--;
             }
             if (M.at<uchar>(index_i, index_j) == 2) {
-
-                index_j--;
+                index_i--;  // left occlusion
+                dp_disparities.at<uchar>(sor, index_j) = 0;
             }
             if (M.at<uchar>(index_i, index_j) == 3) {
                 dp_disparities.at<uchar>(sor, index_j) = 0;
-                index_i--;
+                index_j--;  // right occlusion
             }
         }
     }

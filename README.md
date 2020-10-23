@@ -2,7 +2,7 @@
  Disparity image generation with naive and dynamic programming approaches
  
  Input images:
-
+<img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view0.png" width="100" height="100">
 ![alt text](https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view0.png)
 ![alt text](https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view1.png)
  

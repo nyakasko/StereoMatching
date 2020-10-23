@@ -14,6 +14,7 @@ void Disparity2PointCloud(
   const int& dmin, const double& baseline, const double& focal_length);
   
 void StereoEstimation_DP(
+	const int& window_size,
     int height,
     int width,
     int lambda,

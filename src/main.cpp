@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
     int lambda = 10;
 
     StereoEstimation_DP(
+        window_size,
         height,
         width,
         lambda,
@@ -116,59 +117,69 @@ int main(int argc, char** argv) {
 }
 
 void StereoEstimation_DP(
+    const int& window_size,
     int height,
     int width,
     int lambda,
     cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale){
-    for (int sor = 0; sor < height; ++sor)
+
+    int half_window_size = window_size / 2;
+    for (int sor = half_window_size; sor < height - half_window_size; ++sor)
     {
         cv::Mat C = cv::Mat::zeros(width, width, CV_8UC1);
         cv::Mat M = cv::Mat::ones(width, width, CV_8UC1);
         std::cout
-            << "Calculating disparities for the DP approach... "
-            << std::ceil((sor / static_cast<double> (height)) * 100) << "%\r"
+            << "Calculating disparities for the DP approach...  "
+            << std::ceil(((sor - half_window_size + 1) / static_cast<double>(height - window_size + 1)) * 100) << "%\r"
             << std::flush;
-
-        for (int i = 1; i < width; ++i) {
-            C.at<uchar>(i, 1) = C.at<uchar>(i - 1, 1) + lambda; // maybe i*occlusion?
-            M.at<uchar>(i, 1) = 3; // right occlusion
+        for (int i = half_window_size + 1; i < width - half_window_size; ++i) {
+            C.at<uchar>(i - half_window_size, 1) = C.at<uchar>(i - half_window_size - 1, 1) + lambda; // maybe i*occlusion?
+            M.at<uchar>(i - half_window_size, 1) = 3; // right occlusion
         }
-        for (int j = 1; j < width; ++j) {
-            C.at<uchar>(1, j) += lambda;
-            M.at<uchar>(1, j) = 2; // left occlusion
+        for (int j = half_window_size + 1; j < width - half_window_size; ++j) {
+            C.at<uchar>(1, j - half_window_size) += lambda;
+            M.at<uchar>(1, j - half_window_size) = 2; // left occlusion
         }
+        for (int i = half_window_size + 1; i < width - half_window_size; ++i) {
+            for (int j = half_window_size + 1; j < width - half_window_size; ++j) {
+                // TODO: sum up matching cost (ssd) in a window
+                int val = 0;
+                for (int u = -half_window_size; u <= half_window_size; ++u) {
+                    for (int v = -half_window_size; v <= half_window_size; ++v)
+                    {
+                        int val_left = image1.at<uchar>(sor + u, i + v);
+                        int val_right = image2.at<uchar>(sor + u, j + v);
 
-        for (int i = 1; i < width; ++i) {
-            for (int j = 1; j < width; ++j) {
-                int val = image1.at<uchar>(sor, i) - image2.at<uchar>(sor, j);
-                int dissim = val * val;
-                int min1 = C.at<uchar>(i - 1, j - 1) + dissim;
-                int min2 = C.at<uchar>(i - 1, j) + lambda; // left occlusion
-                int min3 = C.at<uchar>(i, j - 1) + lambda; // right occlusion
+                        val += (val_left - val_right) * (val_left - val_right);
+                    }
+                }
+                int min1 = C.at<uchar>(i - half_window_size - 1, j - half_window_size - 1) + val;
+                int min2 = C.at<uchar>(i - half_window_size - 1, j - half_window_size) + lambda; // left occlusion
+                int min3 = C.at<uchar>(i - half_window_size, j - half_window_size - 1) + lambda; // right occlusion
                 int min = std::min({ min1, min2, min3 });
-                C.at<uchar>(i, j) = min; // Update the cost matrix
+                C.at<uchar>(i - half_window_size, j - half_window_size) = min; // Update the cost matrix
 
-                if (min == min1) M.at<uchar>(i, j) = 1;
-                else if (min == min2) M.at<uchar>(i, j) = 2;  // left occlusion
-                else if (min == min3) M.at<uchar>(i, j) = 3;  // right occlusion
+                if (min == min1) M.at<uchar>(i - half_window_size, j - half_window_size) = 1;
+                else if (min == min2) M.at<uchar>(i - half_window_size, j - half_window_size) = 2;  // left occlusion
+                else if (min == min3) M.at<uchar>(i - half_window_size, j - half_window_size) = 3;  // right occlusion
 
             }
         }
 
-        int index_i = width - 1;
-        int index_j = width - 1;
-        while (index_i > 0 && index_j > 0) {
-            if (M.at<uchar>(index_i, index_j) == 1) {
-                dp_disparities.at<uchar>(sor, index_j) = std::abs(index_j - index_i) * scale;
+        int index_i = width - half_window_size - 1;
+        int index_j = width - half_window_size - 1;
+        while (index_i > half_window_size && index_j > half_window_size) {
+            if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 1) {
+                // dp_disparities.at<uchar>(sor, index_j) = (index_j - index_i) * scale;
+                dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = (index_j - index_i) * scale;
                 index_i--;
                 index_j--;
             }
-            if (M.at<uchar>(index_i, index_j) == 2) {
-                dp_disparities.at<uchar>(sor, index_j) = 0;
+            if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 2) {
+                dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = 0;
                 index_i--;  // left occlusion
             }
-            if (M.at<uchar>(index_i, index_j) == 3) {
-                dp_disparities.at<uchar>(sor, index_j) = 0;
+            if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 3) {
                 index_j--;  // right occlusion
             }
         }

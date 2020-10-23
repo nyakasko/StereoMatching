@@ -2,14 +2,12 @@
  Disparity image generation with naive and dynamic programming approaches
  
  Input images:
-<img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view0.png" width="100" height="100">
-![alt text](https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view0.png)
-![alt text](https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view1.png)
+<img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view0.png" width="300" height="300"><img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view1.png" width="300" height="300">
  
  1. Naive implementation with SSD and a sliding window (kernel = 7)
  
- ![alt text](https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_naive_kernel7.png)
+ <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_naive_kernel7.png" width="300" height="300">
  
  2. Dynamic programming implementation with sliding window (kernel = 3)
 
- ![alt text](https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_dp_kernel3.png)
+ <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_dp_kernel3.png" width="300" height="300">

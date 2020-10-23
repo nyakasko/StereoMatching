@@ -1,4 +1,4 @@
-# OpenCV_naive_stereo
+# OpenCV_Stereo_Matching
  Disparity image generation with naive and dynamic programming approaches
  
  Input images:

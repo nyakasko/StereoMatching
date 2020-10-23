@@ -1,5 +1,5 @@
 # OpenCV_naive_stereo
- Disparity image creation with naive and dynamic programming approaches
+ Disparity image generation with naive and dynamic programming approaches
  
  Input images:
 

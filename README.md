@@ -6,8 +6,8 @@
  
  1. Naive implementation with SSD and a sliding window (kernel = 7)
  
-        <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_naive_kernel7.png" width="400" height="400">
+       <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_naive_kernel7.png" width="400" height="400">
  
  2. Dynamic programming implementation with sliding window (kernel = 3)
 
-        <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_dp_kernel3.png" width="400" height="400">
+       <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_dp_kernel3.png" width="400" height="400">

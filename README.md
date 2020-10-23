@@ -1,6 +1,8 @@
 # OpenCV_Stereo_Matching
  Disparity image generation with naive and dynamic programming approaches
  
+ [A Maximum Likelihood Stereo Algorithm](https://www.sciencedirect.com/science/article/abs/pii/S1077314296900405)
+ 
  Input images:
  
 <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view0.png" width="300" height="300">   <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/view1.png" width="300" height="300">

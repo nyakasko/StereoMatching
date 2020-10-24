@@ -88,10 +88,10 @@ int main(int argc, char** argv) {
     cv::imshow("DP", dp_disparities);
     cv::waitKey(0);
 
-    StereoEstimation_Naive(
-        window_size, dmin, height, width,
-        image1, image2,
-        naive_disparities, scale);
+    //StereoEstimation_Naive(
+    //    window_size, dmin, height, width,
+    //    image1, image2,
+    //    naive_disparities, scale);
 
     ////////////
     // Output //
@@ -103,15 +103,15 @@ int main(int argc, char** argv) {
         height, width, dp_disparities,
         window_size, dmin, baseline, focal_length);
 
-    // save and display images
-    std::stringstream out1;
-    out1 << output_file << "_naive.png";
-    cv::imwrite(out1.str(), naive_disparities);
+    //// save and display images
+    //std::stringstream out1;
+    //out1 << output_file << "_naive.png";
+    //cv::imwrite(out1.str(), naive_disparities);
 
-    cv::namedWindow("Naive", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Naive", naive_disparities);
+    //cv::namedWindow("Naive", cv::WINDOW_AUTOSIZE);
+    //cv::imshow("Naive", naive_disparities);
 
-    cv::waitKey(0);
+    //cv::waitKey(0);
 
     return 0;
 }

@@ -13,4 +13,4 @@
  
  2. Dynamic programming implementation with sliding window (kernel = 3)
 
-       <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_dp_kernel3.png" width="400" height="400">
+       <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_dp.png" width="400" height="400">

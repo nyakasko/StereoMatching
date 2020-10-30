@@ -17,8 +17,8 @@ int main(int argc, char** argv) {
     const double baseline = 213;
 
     // stereo estimation parameters
-    const int dmin = 67;
-    int window_size = 3;
+    const int dmin = 128;
+    int window_size = 5;
     double weight = 500;
     const double scale = 3;
     const double center_x = 2928.3;
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     cv::Mat naive_disparities = cv::Mat::zeros(height, width, CV_8UC1);
     // DP disparity image
     cv::Mat dp_disparities = cv::Mat::zeros(height, width, CV_8UC1);
-    int lambda = 10;
+    int lambda = weight;
 
     StereoEstimation_DP(
         window_size,
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
         width,
         lambda,
         image1, image2,
-        dp_disparities, scale);
+        dp_disparities, scale, dmin);
 
     // save and display images
     std::stringstream out2;
@@ -122,7 +122,7 @@ void StereoEstimation_DP(
     int height,
     int width,
     int lambda,
-    cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale){
+    cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale, const int& dmin){
 
     int half_window_size = window_size / 2;
     for (int sor = half_window_size; sor < height - half_window_size; ++sor)
@@ -133,14 +133,14 @@ void StereoEstimation_DP(
             << "Calculating disparities for the DP approach...  "
             << std::ceil(((sor - half_window_size + 1) / static_cast<double>(height - window_size + 1)) * 100) << "%\r"
             << std::flush;
+        #pragma omp parallel for
         for (int i = half_window_size + 1; i < width - half_window_size; ++i) {
             C.at<uchar>(i - half_window_size, 1) = C.at<uchar>(i - half_window_size - 1, 1) + lambda; // maybe i*occlusion?
-            M.at<uchar>(i - half_window_size, 1) = 3; // right occlusion
+            M.at<uchar>(i - half_window_size, 1) = 2; // left occlusion
+            C.at<uchar>(1, i - half_window_size) += C.at<uchar>(1, i - half_window_size - 1) + lambda;
+            M.at<uchar>(1, i - half_window_size) = 3; // right occlusion
         }
-        for (int j = half_window_size + 1; j < width - half_window_size; ++j) {
-            C.at<uchar>(1, j - half_window_size) += lambda;
-            M.at<uchar>(1, j - half_window_size) = 2; // left occlusion
-        }
+        #pragma omp parallel for
         for (int i = half_window_size + 1; i < width - half_window_size; ++i) {
             for (int j = half_window_size + 1; j < width - half_window_size; ++j) {
                 // TODO: sum up matching cost (ssd) in a window
@@ -172,7 +172,7 @@ void StereoEstimation_DP(
         while (index_i > half_window_size && index_j > half_window_size) {
             if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 1) {
                 // dp_disparities.at<uchar>(sor, index_j) = (index_j - index_i) * scale;
-                dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = (index_j - index_i) * scale;
+                dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = (index_j - index_i) * 255 / dmin;
                 index_i--;
                 index_j--;
             }
@@ -202,7 +202,7 @@ void StereoEstimation_Naive(
             << "Calculating disparities for the naive approach... "
             << std::ceil(((i - half_window_size + 1) / static_cast<double>(height - window_size + 1)) * 100) << "%\r"
             << std::flush;
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int j = half_window_size; j < width - half_window_size; ++j) {
             int min_ssd = INT_MAX;
             int disparity = 0;

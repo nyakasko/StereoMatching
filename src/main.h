@@ -19,4 +19,4 @@ void StereoEstimation_DP(
     int height,
     int width,
     int lambda,
-    cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale);  
+    cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale, const int& dmin);  

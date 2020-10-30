@@ -21,7 +21,9 @@ int main(int argc, char** argv) {
     int window_size = 3;
     double weight = 500;
     const double scale = 3;
-
+    const double center_x = 2928.3;
+    const double center_y = 940.545;
+    const double offset = 553.54;
     ///////////////////////////
     // Commandline arguments //
     ///////////////////////////
@@ -65,7 +67,6 @@ int main(int argc, char** argv) {
     ////////////////////
 
     // Naive disparity image
-    // cv::Mat naive_disparities = cv::Mat::zeros(height - window_size, width - window_size, CV_8UC1);
     cv::Mat naive_disparities = cv::Mat::zeros(height, width, CV_8UC1);
     // DP disparity image
     cv::Mat dp_disparities = cv::Mat::zeros(height, width, CV_8UC1);
@@ -79,9 +80,9 @@ int main(int argc, char** argv) {
         image1, image2,
         dp_disparities, scale);
 
-    // save / display images
+    // save and display images
     std::stringstream out2;
-    out2 << output_file << ".png";
+    out2 << output_file << "_dp.png";
     cv::imwrite(out2.str(), dp_disparities);
 
     cv::namedWindow("DP", cv::WINDOW_AUTOSIZE);
@@ -101,7 +102,7 @@ int main(int argc, char** argv) {
     Disparity2PointCloud(
         output_file,
         height, width, dp_disparities,
-        window_size, dmin, baseline, focal_length);
+        window_size, dmin, baseline, focal_length, center_x, center_y, offset);
 
     // save and display images
     std::stringstream out1;
@@ -239,21 +240,20 @@ void Disparity2PointCloud(
     const std::string& output_file,
     int height, int width, cv::Mat& disparities,
     const int& window_size,
-    const int& dmin, const double& baseline, const double& focal_length)
+    const int& dmin, const double& baseline, const double& focal_length, const double& center_x, const double& center_y, const double& offset)
 {
     std::stringstream out3d;
     out3d << output_file << ".xyz";
     std::ofstream outfile(out3d.str());
+
     for (int i = 0; i < height - window_size; ++i) {
         std::cout << "Reconstructing 3D point cloud from disparities... " << std::ceil(((i) / static_cast<double>(height - window_size + 1)) * 100) << "%\r" << std::flush;
         for (int j = 0; j < width - window_size; ++j) {
             if (disparities.at<uchar>(i, j) == 0) continue;
-
             // TODO
-            const double Z = (baseline * focal_length) / static_cast<double>(disparities.at<uchar>(i, j)); // b * f / d
-            const double X = static_cast<double>(i * Z) / focal_length;
-            const double Y = static_cast<double>(j * Z) / focal_length;
-            
+            double Z = (baseline * focal_length) / ((int(disparities.at<uchar>(i, j)) * (static_cast<float>(dmin) / 255)) + offset);
+            double X = (i - center_x) * Z / focal_length;
+            double Y = (j - center_y) * Z / focal_length;
             outfile << X << " " << Y << " " << Z << std::endl;
         }
     }

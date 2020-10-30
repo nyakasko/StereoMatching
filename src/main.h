@@ -11,7 +11,8 @@ void Disparity2PointCloud(
   const std::string& output_file,
   int height, int width, cv::Mat& disparities,
   const int& window_size,
-  const int& dmin, const double& baseline, const double& focal_length);
+  const int& dmin, const double& baseline, const double& focal_length,
+  const double& center_x, const double& center_y, const double& offset);
   
 void StereoEstimation_DP(
 	const int& window_size,

@@ -11,6 +11,6 @@
  
        <img src="https://github.com/nyakasko/OpenCV_Stereo_Matching/blob/main/data/output_naive_kernel7.png" width="400" height="400">
  
- 2. Dynamic programming implementation with sliding window (kernel = 3)
+ 2. Dynamic programming implementation with sliding window (kernel = 5)
 
        <img src="https://github.com/nyakasko/StereoMatching/blob/main/data/output_dp_kernel5_weight2000.png" width="400" height="400">

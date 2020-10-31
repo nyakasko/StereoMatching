@@ -122,23 +122,27 @@ void StereoEstimation_DP(
     int height,
     int width,
     int lambda,
-    cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale, const int& dmin){
+    cv::Mat& image1, cv::Mat& image2, cv::Mat& dp_disparities, const double& scale, const int& dmin) {
 
     int half_window_size = window_size / 2;
     for (int sor = half_window_size; sor < height - half_window_size; ++sor)
     {
-        cv::Mat C = cv::Mat::zeros(width, width, CV_8UC1);
+        cv::Mat C = cv::Mat::zeros(width, width, CV_32F);
         cv::Mat M = cv::Mat::ones(width, width, CV_8UC1);
         std::cout
             << "Calculating disparities for the DP approach...  "
             << std::ceil(((sor - half_window_size + 1) / static_cast<double>(height - window_size + 1)) * 100) << "%\r"
             << std::flush;
+
+        C.at<float>(0, 0) = lambda;
+        M.at<uchar>(0, 0) = 3;
+
         #pragma omp parallel for
         for (int i = half_window_size + 1; i < width - half_window_size; ++i) {
-            C.at<uchar>(i - half_window_size, 1) = C.at<uchar>(i - half_window_size - 1, 1) + lambda; // maybe i*occlusion?
-            M.at<uchar>(i - half_window_size, 1) = 2; // left occlusion
-            C.at<uchar>(1, i - half_window_size) += C.at<uchar>(1, i - half_window_size - 1) + lambda;
-            M.at<uchar>(1, i - half_window_size) = 3; // right occlusion
+            C.at<float>(i - half_window_size, 0) = C.at<float>(i - half_window_size - 1, 0) + lambda; // maybe i*occlusion?
+            M.at<uchar>(i - half_window_size, 0) = 2; // left occlusion
+            C.at<float>(0, i - half_window_size) += C.at<float>(0, i - half_window_size - 1) + lambda;
+            M.at<uchar>(0, i - half_window_size) = 3; // right occlusion
         }
         #pragma omp parallel for
         for (int i = half_window_size + 1; i < width - half_window_size; ++i) {
@@ -154,11 +158,11 @@ void StereoEstimation_DP(
                         val += (val_left - val_right) * (val_left - val_right);
                     }
                 }
-                int min1 = C.at<uchar>(i - half_window_size - 1, j - half_window_size - 1) + val;
-                int min2 = C.at<uchar>(i - half_window_size - 1, j - half_window_size) + lambda; // left occlusion
-                int min3 = C.at<uchar>(i - half_window_size, j - half_window_size - 1) + lambda; // right occlusion
+                int min1 = C.at<float>(i - half_window_size - 1, j - half_window_size - 1) + val;
+                int min2 = C.at<float>(i - half_window_size - 1, j - half_window_size) + lambda; // left occlusion
+                int min3 = C.at<float>(i - half_window_size, j - half_window_size - 1) + lambda; // right occlusion
                 int min = std::min({ min1, min2, min3 });
-                C.at<uchar>(i - half_window_size, j - half_window_size) = min; // Update the cost matrix
+                C.at<float>(i - half_window_size, j - half_window_size) = min; // Update the cost matrix
 
                 if (min == min1) M.at<uchar>(i - half_window_size, j - half_window_size) = 1;
                 else if (min == min2) M.at<uchar>(i - half_window_size, j - half_window_size) = 2;  // left occlusion
@@ -169,15 +173,17 @@ void StereoEstimation_DP(
 
         int index_i = width - half_window_size - 1;
         int index_j = width - half_window_size - 1;
+        int k = width - half_window_size - 1;
         while (index_i > half_window_size && index_j > half_window_size) {
             if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 1) {
-                // dp_disparities.at<uchar>(sor, index_j) = (index_j - index_i) * scale;
-                dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = (index_j - index_i) * 255 / dmin;
+
+                dp_disparities.at<uchar>(sor - half_window_size, k - half_window_size) = (index_j - index_i) * 255 / dmin;
                 index_i--;
                 index_j--;
+                k--;
             }
             if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 2) {
-                dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = 0;
+                // dp_disparities.at<uchar>(sor - half_window_size, index_j - half_window_size) = 0;
                 index_i--;  // left occlusion
             }
             if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 3) {
@@ -202,7 +208,7 @@ void StereoEstimation_Naive(
             << "Calculating disparities for the naive approach... "
             << std::ceil(((i - half_window_size + 1) / static_cast<double>(height - window_size + 1)) * 100) << "%\r"
             << std::flush;
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int j = half_window_size; j < width - half_window_size; ++j) {
             int min_ssd = INT_MAX;
             int disparity = 0;
@@ -261,4 +267,3 @@ void Disparity2PointCloud(
     std::cout << "Reconstructing 3D point cloud from disparities... Done.\r" << std::flush;
     std::cout << std::endl;
 }
- 

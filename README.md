@@ -1,5 +1,5 @@
 # OpenCV_Stereo_Matching
- Disparity image generation with naive and dynamic programming approaches
+ Disparity image generation with naive and dynamic programming approaches and 3D pointcloud generation from the disparity image
  
  [A Maximum Likelihood Stereo Algorithm](https://www.sciencedirect.com/science/article/abs/pii/S1077314296900405)
  

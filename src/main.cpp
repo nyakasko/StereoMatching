@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     const double baseline = 213;
 
     // stereo estimation parameters
-    const int dmin = 128;
+    const int dmin = 200;
     int window_size = 5;
     double weight = 500;
     const double scale = 3;
@@ -89,10 +89,10 @@ int main(int argc, char** argv) {
     cv::imshow("DP", dp_disparities);
     cv::waitKey(0);
 
-    StereoEstimation_Naive(
-        window_size, dmin, height, width,
-        image1, image2,
-        naive_disparities, scale);
+    //StereoEstimation_Naive(
+    //    window_size, dmin, height, width,
+    //    image1, image2,
+    //    naive_disparities, scale);
 
     ////////////
     // Output //
@@ -177,7 +177,7 @@ void StereoEstimation_DP(
         while (index_i > half_window_size && index_j > half_window_size) {
             if (M.at<uchar>(index_i - half_window_size, index_j - half_window_size) == 1) {
 
-                dp_disparities.at<uchar>(sor - half_window_size, k - half_window_size) = (index_j - index_i) * 255 / dmin;
+                dp_disparities.at<uchar>(sor - half_window_size, k - half_window_size) = index_j - index_i;
                 index_i--;
                 index_j--;
                 k--;
@@ -257,7 +257,7 @@ void Disparity2PointCloud(
         for (int j = 0; j < width - window_size; ++j) {
             if (disparities.at<uchar>(i, j) == 0) continue;
             // TODO
-            double Z = (baseline * focal_length) / ((int(disparities.at<uchar>(i, j)) * (static_cast<float>(dmin) / 255)) + offset);
+            double Z = (baseline * focal_length) / (int(disparities.at<uchar>(i, j)) + dmin);
             double X = (i - center_x) * Z / focal_length;
             double Y = (j - center_y) * Z / focal_length;
             outfile << X << " " << Y << " " << Z << std::endl;

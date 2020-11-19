@@ -89,10 +89,10 @@ int main(int argc, char** argv) {
     cv::imshow("DP", dp_disparities);
     cv::waitKey(0);
 
-    //StereoEstimation_Naive(
-    //    window_size, dmin, height, width,
-    //    image1, image2,
-    //    naive_disparities, scale);
+    StereoEstimation_Naive(
+        window_size, dmin, height, width,
+        image1, image2,
+        naive_disparities, scale);
 
     ////////////
     // Output //
